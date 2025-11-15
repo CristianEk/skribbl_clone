@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skribbl_clone/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,11 +17,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         //definimos el colores primario de la aplicación como azul
-        primarySwatch: Colors.blue,
+        //primarySwatch: Colors.blue,
       
-        //colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const Text("Skribbl Clone"),
+      home: const HomeScreen(),
     );
   }
 }
