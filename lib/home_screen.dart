@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:skribbl_clone/create_room_screen.dart';
+import 'package:skribbl_clone/join_room_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,22 +28,24 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Espacio uniforme entre los botones
             children: [
               //boton para crear sala
-              ElevatedButton(onPressed: (){}, 
+              ElevatedButton(
+              onPressed: ()=> Navigator.of(context).push(MaterialPageRoute(builder:(context)=> const CreateRoomScreen())),
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.blue), //usa el color azul de fondo para todos los estados
                 foregroundColor: MaterialStateProperty.all(Colors.white), //color del texto
                 minimumSize: MaterialStateProperty.all(Size(MediaQuery.of(context).size.width/2.5, 50))
               ),
-              child: const Text("Create Room"),
+              child: const Text("Create Room", style: TextStyle(fontSize: 16),),
               ),
               //bopton para unirse a sala
-              ElevatedButton(onPressed: (){},
+              ElevatedButton(
+              onPressed: ()=> Navigator.of(context).push(MaterialPageRoute(builder:(context)=> const JoinRoomScreen())),
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.blue), //usa el color azul de fondo para todos los estados
                 foregroundColor: MaterialStateProperty.all(Colors.white),
                 minimumSize: MaterialStateProperty.all(Size(MediaQuery.of(context).size.width/2.5, 50))
               ), 
-              child: const Text("Join Room")
+              child: const Text("Join Room", style: TextStyle(fontSize: 16),)
               ),
             ],
           )   
