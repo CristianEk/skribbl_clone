@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:skribbl_clone/home_screen.dart';
-import 'package:skribbl_clone/paint_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +21,7 @@ class MyApp extends StatelessWidget {
       
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const PaintScreen(),
+      home: const HomeScreen(),
     );
   }
 }

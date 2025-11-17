@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skribbl_clone/widgets/custom_text_field.dart';
+import 'package:skribbl_clone/paint_screen.dart';
 
 class JoinRoomScreen extends StatefulWidget {
   const JoinRoomScreen({super.key});
@@ -13,6 +14,17 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
   final TextEditingController _nameController = TextEditingController();
   // Controlador para el campo de texto del nombre de la sala
   final TextEditingController _roomNameController = TextEditingController();
+
+  void joinRoom() {
+    if (_nameController.text.isNotEmpty && _roomNameController.text.isNotEmpty) {
+          Map<String, String> data= {
+            "Nickname": _nameController.text,
+            "Roomname": _roomNameController.text
+          };
+          //me manda a la sala de PaintScreen con los datos del Map y la ruta de donded viene
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaintScreen(data : data, screenFrom: 'joinRoom' )));              
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +55,7 @@ class _JoinRoomScreenState extends State<JoinRoomScreen> {
           ), 
           SizedBox(height: 40),
           // Botón para crear la sala
-          ElevatedButton(onPressed: (){}, 
+          ElevatedButton(onPressed: joinRoom, 
           style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.blue), //usa el color azul de fondo para todos los estados
                 foregroundColor: MaterialStateProperty.all(Colors.white), //color del texto

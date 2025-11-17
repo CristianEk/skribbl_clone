@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skribbl_clone/widgets/custom_text_field.dart';
+import 'package:skribbl_clone/paint_screen.dart';
 
 class CreateRoomScreen extends StatefulWidget {
   const CreateRoomScreen({super.key});
@@ -17,6 +18,24 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
   late String? _maxRoundsValue;
   // Valor seleccionado en el Dropdown de tamaño de sala
   late String? _roomSizeValue;
+
+  // Función para manejar la creación de la sala
+  void createRoom() {
+    if (_nameController.text.isNotEmpty &&
+        _roomNameController.text.isNotEmpty &&
+        _maxRoundsValue != null &&
+        _roomSizeValue != null) {
+          Map <String, String> data= {
+            "Nickname": _nameController.text,
+            "Roomname": _roomNameController.text,
+            "Rounds": _maxRoundsValue!,
+            "LobbySize": _roomSizeValue!
+          };
+          //me manda a la sala de PaintScreen con los datos del Map y la ruta de donded viene
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaintScreen(data : data, screenFrom: 'createRoom' )));              
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,7 +115,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
           ),
           SizedBox(height: 40),
           // Botón para crear la sala
-          ElevatedButton(onPressed: (){}, 
+          ElevatedButton(onPressed: createRoom, 
           style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.blue), //usa el color azul de fondo para todos los estados
                 foregroundColor: MaterialStateProperty.all(Colors.white), //color del texto
