@@ -4,7 +4,6 @@ import 'package:skribbl_clone/join_room_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }

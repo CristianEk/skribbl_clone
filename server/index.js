@@ -50,7 +50,7 @@ io.on('connection',(socket) => {
             //guarda la sala en la base de datos
             room = await room.save();
             //el socket entra a la sala
-            socket.join(room);
+            socket.join(Roomname);
             //envia los datos a todos en la sala
             io.to(Roomname).emit('updateRoom',room);
         }
@@ -84,14 +84,16 @@ io.on('connection',(socket) => {
             }
             else{
                 socket.emit('notCorrectGame','Game in progress, try later!');
-            }
-            
+            }    
         }
         catch(e){
             console.log(e);
         }
     })
-
+        //reenvia los datos pintados a todos en la sala
+    socket.on('paint', ({details, roomName})=>{
+        io.to(roomName).emit('points',{details:details});
+    })
 });
 
 server.listen(port, "0.0.0.0", () => {

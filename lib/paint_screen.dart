@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skribbl_clone/models/touch_points.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'models/my_custom_painter.dart';
 
@@ -17,8 +18,11 @@ class _PaintScreenState extends State<PaintScreen> {
   late IO.Socket socket;
 
   Map dataOfRoom = {};
-  List points =[];
-
+  List<TouchPoints?> points =[];
+  StrokeCap strokeType =StrokeCap.round;
+  Color selectedColor =Colors.black;
+  double opacity =1;
+  double strokeWidth =2;
 
  //estado de ejecutar una sola vez cuando la pantala se crea (connectar al socket)
   @override
@@ -28,8 +32,9 @@ class _PaintScreenState extends State<PaintScreen> {
   }
 
   // Lógica para conectar al servidor de socket
+  //aqui debo cambiar mi ip dependiendo de la red donde este XD
   void connect() {
-    socket = IO.io('http://192.168.100.17:3000',<String,dynamic>{
+    socket = IO.io('http://192.168.18.132:3000',<String,dynamic>{
       'transports':['websocket'],
       'autoConnect': false
     });
@@ -51,8 +56,27 @@ class _PaintScreenState extends State<PaintScreen> {
            dataOfRoom = roomData;
         });
         if(roomData['isJoin'] != true){
-          
+ 
         }
+      });
+      socket.on('points', (point) {
+        if (point['details'] != null) {
+          setState(() {
+            points.add(TouchPoints(
+                points: Offset((point['details']['dx']).toDouble(),
+                    (point['details']['dy']).toDouble()),
+                paint: Paint()
+                  ..strokeCap = strokeType
+                  ..isAntiAlias = true
+                  ..color = selectedColor.withOpacity(opacity)
+                  ..strokeWidth = strokeWidth));
+          });
+                }else {
+            // FIN DE TRAZO
+            setState(() {
+              points.add(null);   // <-- NECESARIO PARA TU PAINTER
+            });
+          }
       });
     });
   }
@@ -60,7 +84,10 @@ class _PaintScreenState extends State<PaintScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
@@ -70,23 +97,71 @@ class _PaintScreenState extends State<PaintScreen> {
               Container(
                 width: width,
                 height: height *0.55,
+                //detectar los gestos del usuario
                 child: GestureDetector(
-                  onPanUpdate: (details) {},
-                  onPanStart: (details) {},
-                  onPanEnd: (details) {},
+                  //el usuario arrastra el dedo pintando
+                  onPanUpdate: (details) {
+                    print(details.localPosition.dx);
+                    socket.emit('paint', {
+                      
+                      'details':{
+                        'dx': details.localPosition.dx,
+                        'dy': details.localPosition.dy,
+                      },
+                      'roomName': widget.data['Roomname'],
+                    });
+                  },
+                  //el usuario pone el dedo en la pantalla
+                  onPanStart: (details) {
+                    
+                    socket.emit('paint', {
+                      'details':{
+                        'dx': details.localPosition.dx,
+                        'dy': details.localPosition.dy,
+                      },
+                      'roomName': widget.data['Roomname'],
+                    });
+                  },
+                  //el usuario levanta el dedo
+                  onPanEnd: (details) {
+                    socket.emit('paint', {
+                      'details': null,
+                      'roomName': widget.data['Roomname'],
+                    });
+                    setState(() {
+                        points.add(null);
+                      });
+                  },      
                   child: SizedBox.expand(
                     child: ClipRRect(
                       borderRadius: BorderRadius.all(Radius.circular(20)),
                       child: RepaintBoundary(
                         child: CustomPaint(
                           size: Size.infinite,
-                          painter: MyCustomPainter(pointslist: points),
+                          painter: MyCustomPainter(pointsList: points),
                         ),
                       ),
                     ),
                   ),
                 ),
-              )
+              ),
+              Row(
+                children: [
+                  IconButton(icon:Icon(Icons.color_lens, color:selectedColor), onPressed: () {},),
+                  Expanded(
+                    child: Slider(
+                      min: 1.0,
+                      max: 10,
+                      label: "Strokewidth $strokeWidth",
+                      activeColor: selectedColor,
+                      value: strokeWidth,
+                      onChanged: (double value){
+                        
+                      }
+                    ),),
+                    IconButton(icon:Icon(Icons.layers_clear, color:selectedColor), onPressed: () {},),
+                ]
+              ),
             ],
           )
         ],
