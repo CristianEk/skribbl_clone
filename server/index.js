@@ -19,7 +19,7 @@ mongoose.connect(DB).then(() =>{
 }).catch((e) => {
     console.log(e);
 })
-//1:41:50
+
 io.on('connection',(socket) => {
     console.log('connected');
     //CREAR SALA
@@ -93,6 +93,20 @@ io.on('connection',(socket) => {
         //reenvia los datos pintados a todos en la sala
     socket.on('paint', ({details, roomName})=>{
         io.to(roomName).emit('points',{details:details});
+    })
+
+    //controlador para cambiar el color
+    socket.on('color-change', ({color,roomName})=>{
+        io.to(roomName).emit('color-change',color)
+    })
+
+    //controlador para el grosor
+    socket.on('stroke-width', ({value, roomName}) =>{
+        io.to(roomName).emit('stroke-width',value)
+    })
+    //controlador para limpiar el trazo
+    socket.on('clean-screen', (roomName) =>{
+        io.to(roomName).emit('clean-screen','')
     })
 });
 

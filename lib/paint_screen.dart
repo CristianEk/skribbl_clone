@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:skribbl_clone/models/touch_points.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'models/my_custom_painter.dart';
@@ -59,6 +60,7 @@ class _PaintScreenState extends State<PaintScreen> {
  
         }
       });
+      //socket que envia los puntos/trazos y hace que se pinte
       socket.on('points', (point) {
         if (point['details'] != null) {
           setState(() {
@@ -74,9 +76,29 @@ class _PaintScreenState extends State<PaintScreen> {
                 }else {
             // FIN DE TRAZO
             setState(() {
-              points.add(null);   // <-- NECESARIO PARA TU PAINTER
+              points.add(null);   
             });
           }
+      });
+      //socket para cambiar  el color
+      socket.on('color-change',(colorString){
+        int value = int.parse(colorString, radix: 16);
+        Color otherColor = Color(value);
+        setState(() {
+          selectedColor = otherColor;
+        });
+      });
+      //socket para grosor de linea
+      socket.on('stroke-width',(value){
+        setState(() {
+          strokeWidth = value.toDouble();
+        });
+      });
+      //socket para limpiar la pantalla
+            socket.on('clean-screen',(data){
+        setState(() {
+          points.clear();
+        });
       });
     });
   }
@@ -86,6 +108,30 @@ class _PaintScreenState extends State<PaintScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
+    //constructor que hace cambiar el color del pincel
+    void selectColor(){
+      showDialog(context: context, builder: (context)=> AlertDialog(
+        title: const Text('Choose color'),
+        content: SingleChildScrollView(
+          child: BlockPicker(pickerColor: selectedColor, onColorChanged: (color){
+            String valueString = color.value.toRadixString(16).padLeft(8, '0');
+            print(valueString);
+            Map map = {
+              'color':valueString,
+              'roomName': dataOfRoom['Roomname']
+            };
+            socket.emit('color-change', map);
+          }),
+        ),
+        //boton para cerrar el cuadro de texto/ paleta de colores
+        actions: [
+          TextButton(onPressed: () {Navigator.of(context).pop();},
+          child: Text('Close'),
+          )
+        ],
+      ));
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -145,9 +191,12 @@ class _PaintScreenState extends State<PaintScreen> {
                   ),
                 ),
               ),
+              //barra que controla el grueso de la línea
               Row(
                 children: [
-                  IconButton(icon:Icon(Icons.color_lens, color:selectedColor), onPressed: () {},),
+                  IconButton(icon:Icon(Icons.color_lens, color:selectedColor), onPressed: () {
+                    selectColor();
+                  },),
                   Expanded(
                     child: Slider(
                       min: 1.0,
@@ -156,10 +205,17 @@ class _PaintScreenState extends State<PaintScreen> {
                       activeColor: selectedColor,
                       value: strokeWidth,
                       onChanged: (double value){
-                        
+                        Map map ={
+                          'value': value,
+                          'roomName': dataOfRoom['Roomname']
+                        };
+                        socket.emit('stroke-width', map);
                       }
                     ),),
-                    IconButton(icon:Icon(Icons.layers_clear, color:selectedColor), onPressed: () {},),
+                    //borrar lienzo
+                    IconButton(icon:Icon(Icons.layers_clear, color:selectedColor), onPressed: () {
+                      socket.emit('clean-screen',dataOfRoom['Roomname']);
+                    },),
                 ]
               ),
             ],
