@@ -90,7 +90,62 @@ io.on('connection',(socket) => {
             console.log(e);
         }
     })
-        //reenvia los datos pintados a todos en la sala
+    //recibe los datos del nombre y mensaje de las salas y los replica usando el socker msdg en paintscreen
+    socket.on('msg',async(data) =>{
+        try {
+            if(data.msg===data.word){
+                let room = await Room.find({Roomname: data.roomName});
+                let userPlayer = room[0].players.filter(
+                    (player) => player.nickname === data.nickname
+                )
+                if(data.timeTaken !== 0){
+                    userPlayer[0].points += Math.round((200/data.timeTaken) * 10);
+                }
+                room = await room[0].save();
+                io.to(data.roomName).emit('msg',{
+                nickname: data.nickname,
+                msg: 'guessed it!',
+                guessedUserCtr:data.guessedUserCtr +1,
+            })}
+            else{
+                io.to(data.roomName).emit('msg',{
+                nickname: data.nickname,
+                msg: data.msg,
+                guessedUserCtr:data.guessedUserCtr,
+            })}
+        } 
+        catch (e) {
+            console.log(e.toString());
+        }
+    })
+
+    //socket para controlar los turnos
+    socket.on('change-turn', async(Roomname) =>{
+        try {
+            let room = await Room.findOne({Roomname});
+            let idx = room.turnIndex;
+            if(idx +1 === room.players.length){
+                room.currentRound+=1;
+            }
+            if(room.currentRound <= room.Rounds){
+                const word = getWord();
+                room.word = word;
+                room.turnIndex = (idx+1) % room.players.length;
+                room.turn = room.players[room.turnIndex];
+                room = await room.save();
+                io.to(Roomname).emit('change-turn', room);
+            }
+            else{
+
+            }
+            
+        } catch (e) {
+            console.log(e);
+        }
+    })
+
+
+    //reenvia los datos pintados a todos en la sala
     socket.on('paint', ({details, roomName})=>{
         io.to(roomName).emit('points',{details:details});
     })
