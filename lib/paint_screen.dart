@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:skribbl_clone/models/touch_points.dart';
+import 'package:skribbl_clone/waiting_lobby_screen.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'models/my_custom_painter.dart';
 
@@ -137,27 +138,40 @@ class _PaintScreenState extends State<PaintScreen> {
       });
 
       //socket para cambiar turnos
-      socket.on('change-turn', (data){
-        String oldWord =dataOfRoom['word'];
-        showDialog(
-          context: context, 
-          builder: (context){
-            Future.delayed(Duration(seconds: 3), (){
-              setState(() {
-                dataOfRoom = data;
-                renderTextBlank(data['word']);
-                guessedUserCtr = 0;
-                _start = 60;
-                points.clear();
-              });
-              Navigator.of(context).pop();
-              timer.cancel();
-              StartTimer();
+        socket.on('change-turn', (data) {
+          if (!mounted) return;
+
+          String oldWord = dataOfRoom['word'];
+
+          // mostrar diálogo normal
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => AlertDialog(
+              title: Center(child: Text('Word was $oldWord')),
+            ),
+          );
+
+          // ejecutamos la transición fuera del builder
+          Future.delayed(Duration(seconds: 3), () {
+            if (!mounted) return;  // <-- previene freeze
+
+            Navigator.of(context).pop(); // <-- cerrar diálogo
+
+            setState(() {
+              dataOfRoom = data;
+              renderTextBlank(data['word']);
+              guessedUserCtr = 0;
+              _start = 60;
+              points.clear();
             });
-            return AlertDialog(
-              title: Center(child: Text('Word has $oldWord'),),);
+
+            // reiniciar correctamente el timer
+            timer.cancel();
+            StartTimer();
           });
-      });
+        });
+
       //socket para cambiar  el color
       socket.on('color-change',(colorString){
         int value = int.parse(colorString, radix: 16);
@@ -213,7 +227,9 @@ class _PaintScreenState extends State<PaintScreen> {
     }
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
+      body: dataOfRoom !=null ? 
+      dataOfRoom['isJoin'] != true ?   
+      Stack(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -369,7 +385,12 @@ class _PaintScreenState extends State<PaintScreen> {
             ],
           )
         ],
-      ),
+      ) :WaitingLobbyScreen(
+        lobbyName: dataOfRoom['Roomname'], 
+        noOfPlayers: dataOfRoom['players'].length,
+        occupancy: dataOfRoom['lobbySize'],
+        players: dataOfRoom['players'])
+      :Center(child: CircularProgressIndicator()),
       floatingActionButton: Container(
         margin: EdgeInsets.only(bottom: 30),
         child: FloatingActionButton(
