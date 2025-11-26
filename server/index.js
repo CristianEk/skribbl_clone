@@ -106,7 +106,9 @@ io.on('connection',(socket) => {
                 nickname: data.nickname,
                 msg: 'guessed it!',
                 guessedUserCtr:data.guessedUserCtr +1,
-            })}
+            })
+            socket.emit('closeInput', "");
+        }
             else{
                 io.to(data.roomName).emit('msg',{
                 nickname: data.nickname,
@@ -144,6 +146,16 @@ io.on('connection',(socket) => {
         }
     })
 
+    //socket para actualizar el marcador
+    socket.on('updateScore', async(Roomname) =>{
+        try {
+            const room = await Room.findOne({Roomname});
+            io.to(Roomname).emit('updateScore', room);
+        } 
+        catch (e) {
+            console.log(e);
+        }
+    })
 
     //reenvia los datos pintados a todos en la sala
     socket.on('paint', ({details, roomName})=>{
