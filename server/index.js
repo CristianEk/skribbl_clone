@@ -138,7 +138,8 @@ io.on('connection',(socket) => {
                 io.to(Roomname).emit('change-turn', room);
             }
             else{
-
+                //muestra el leaderboard
+                io.to(Roomname).emit('show-leaderboard',room.players);
             }
             
         } catch (e) {
@@ -175,7 +176,31 @@ io.on('connection',(socket) => {
     socket.on('clean-screen', (roomName) =>{
         io.to(roomName).emit('clean-screen','')
     })
+
+    //socket para desconectar al usuario
+    socket.on('disconnect', async() =>{
+        try {
+            let room = await Room.findOne({ 'players.socketID': socket.id });
+            for(let i=0; i<room.players.length;i++){
+                if(room.players[i].socketID === socket.id){
+                    room.players.splice(i,1);
+                    break;
+                }
+            }
+            room = await room.save();
+            if (room.players.length === 1) {
+                socket.broadcast.to(room.Roomname).emit('show-leaderboard',room.players);
+            } 
+            else {
+                socket.broadcast.to(room.Roomname).emit('user-disconnected', room);  
+            }
+        } 
+        catch (e) {
+            console.log(e);
+        }
+    })
 });
+
 
 server.listen(port, "0.0.0.0", () => {
     console.log(`Servidor corriendo en el puerto ${port}`);

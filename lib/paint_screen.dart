@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:skribbl_clone/final_leaderboard.dart';
+import 'package:skribbl_clone/home_screen.dart';
 import 'package:skribbl_clone/models/touch_points.dart';
 import 'package:skribbl_clone/sidebar/player_scoreboard__drawer.dart';
 import 'package:skribbl_clone/waiting_lobby_screen.dart';
@@ -38,7 +40,9 @@ class _PaintScreenState extends State<PaintScreen> {
   var scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map>scoreboard=[];
   bool isTextInputReadOnly = false;
-
+  int maxPoints = 0;
+  String winner = "";
+  bool isShowFinalLeaderboard = false;
 
  //estado de ejecutar una sola vez cuando la pantala se crea (connectar al socket)
   @override
@@ -112,6 +116,11 @@ class _PaintScreenState extends State<PaintScreen> {
           });
         }
       });
+      //socket juego incorrecto
+      socket.on('notCorrectGame', (data)=> Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context)=> HomeScreen()),
+        (route) => false
+      ));
       //socket que envia los puntos/trazos y hace que se pinte
       socket.on('points', (point) {
         if (point['details'] != null) {
@@ -194,6 +203,27 @@ class _PaintScreenState extends State<PaintScreen> {
         }
       });
 
+      //socket para mostrar el leaderboard
+      socket.on('show-leaderboard',(roomPlayers){
+        scoreboard.clear();
+        for(int i=0; i<roomPlayers.length; i++){
+          setState(() {
+            scoreboard.add({
+              'username':roomPlayers[i]['nickname'],
+              'points':roomPlayers[i]['points'].toString()
+            });
+          });
+          if(maxPoints< int.parse(scoreboard[i]['points'])){
+            winner = scoreboard[i]['username'];
+            maxPoints=int.parse(scoreboard[i]['points']);
+          }
+        }
+        setState(() {
+          timer.cancel();
+          isShowFinalLeaderboard = true;
+        });
+      });
+
       //socket para cambiar  el color
       socket.on('color-change',(colorString){
         int value = int.parse(colorString, radix: 16);
@@ -221,7 +251,26 @@ class _PaintScreenState extends State<PaintScreen> {
           isTextInputReadOnly = true;
         });
       });
+      //socket para desconectar
+      socket.on('user-disconnected', (data){
+        scoreboard.clear();
+        for(int i=0;i<data['players'].length; i++){
+          setState(() {
+            scoreboard.add({
+              'username': data['players'][i]['nickname'],
+              'points': data['players'][i]['points'].toString()
+            });
+          });
+        }
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    socket.dispose();
+    timer.cancel();
+    super.dispose();
   }
 
 
@@ -260,8 +309,9 @@ class _PaintScreenState extends State<PaintScreen> {
       drawer: PlayerScore(scoreboard),
       backgroundColor: Colors.white,
       body: dataOfRoom !=null ? 
-      dataOfRoom['isJoin'] != true ?   
-      Stack(
+      dataOfRoom['isJoin'] != true 
+      ? !isShowFinalLeaderboard 
+      ? Stack(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -427,6 +477,7 @@ class _PaintScreenState extends State<PaintScreen> {
               ),
             ],
       ) 
+      :FinalLeaderBoard(scoreboard, winner)
       :WaitingLobbyScreen(
         lobbyName: dataOfRoom['Roomname'], 
         noOfPlayers: dataOfRoom['players'].length,
