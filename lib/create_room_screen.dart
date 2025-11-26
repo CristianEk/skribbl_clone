@@ -15,9 +15,9 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
   // Controlador para el campo de texto del nombre de la sala
   final TextEditingController _roomNameController = TextEditingController();
   // Valor seleccionado en el Dropdown de rondas máximas
-  late String? _maxRoundsValue;
+  String? _maxRoundsValue;
   // Valor seleccionado en el Dropdown de tamaño de sala
-  late String? _roomSizeValue;
+  String? _roomSizeValue;
 
   // Función para manejar la creación de la sala
   void createRoom() {
@@ -25,14 +25,15 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
         _roomNameController.text.isNotEmpty &&
         _maxRoundsValue != null &&
         _roomSizeValue != null) {
-          Map <String, String> data= {
-            "Nickname": _nameController.text,
-            "Roomname": _roomNameController.text,
-            "Rounds": _maxRoundsValue!,
-            "LobbySize": _roomSizeValue!
-          };
-          //me manda a la sala de PaintScreen con los datos del Map y la ruta de donded viene
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaintScreen(data : data, screenFrom: 'createRoom' )));              
+      Map<String, String> data = {
+        "Nickname": _nameController.text,
+        "Roomname": _roomNameController.text,
+        "Rounds": _maxRoundsValue!,
+        "LobbySize": _roomSizeValue!
+      };
+      //me manda a la sala de PaintScreen con los datos del Map y la ruta de donded viene
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => PaintScreen(data: data, screenFrom: 'createRoom')));
     }
   }
 
@@ -40,12 +41,16 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // Acomoda los hijos en el centro verticalmente
+        mainAxisAlignment:
+            MainAxisAlignment.center, // Acomoda los hijos en el centro verticalmente
         children: [
-          const Text("Create Room",style: TextStyle(
-            color: Colors.black,fontSize: 24,)),
+          const Text("Create Room",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+              )),
           //Espacio entre texto y botones, toma el 8% de la altura de la pantalla
-          SizedBox(height: MediaQuery.of(context).size.height*0.08),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.08),
           //contenedor para el campo de texto del nombre de usuario
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -69,24 +74,28 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
             focusColor: Color(0xFFF5F6FA),
             // lista de elelemntos que se vuelven opciones en el dropdown con el .map
             items: ["2", "5", "10", "15"].map<DropdownMenuItem<String>>(
-              // función anónima que crea un DropdownMenuItem para cada valor
-              (String value) => DropdownMenuItem(
-                value: value,
-                child: Text(
-                  value,
-                  style: const TextStyle(color: Colors.black),
-                ))).toList(), // convierte el iterable en una lista
-            hint: const Text("Select Max Rounds",style: TextStyle(
+                // función anónima que crea un DropdownMenuItem para cada valor
+                (String value) => DropdownMenuItem(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: const TextStyle(color: Colors.black),
+                    ))).toList(), // convierte el iterable en una lista
+            hint: const Text(
+              "Select Max Rounds",
+              style: TextStyle(
                 color: Colors.black,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-              ),),
-              // valor seleccionado actualmente
+              ),
+            ),
+            // valor seleccionado actualmente
             onChanged: (String? value) {
               setState(() {
                 _maxRoundsValue = value;
               });
             },
+            value: _maxRoundsValue, // Usar el valor del estado
           ),
           SizedBox(height: 20),
           // Dropdown para seleccionar el número de jugadores
@@ -94,39 +103,44 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
             focusColor: Color(0xFFF5F6FA),
             // lista de elelemntos que se vuelven opciones en el dropdown con el .map
             items: ["2", "3", "4", "5", "6", "7", "8"].map<DropdownMenuItem<String>>(
-              // función anónima que crea un DropdownMenuItem para cada valor
-              (String value) => DropdownMenuItem(
-                value: value,
-                child: Text(
-                  value,
-                  style: const TextStyle(color: Colors.black),
-                ))).toList(), // convierte el iterable en una lista
-            hint: const Text("Select room size",style: TextStyle(
+                // función anónima que crea un DropdownMenuItem para cada valor
+                (String value) => DropdownMenuItem(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: const TextStyle(color: Colors.black),
+                    ))).toList(), // convierte el iterable en una lista
+            hint: const Text(
+              "Select room size",
+              style: TextStyle(
                 color: Colors.black,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-              ),),
-              // valor seleccionado actualmente
+              ),
+            ),
+            // valor seleccionado actualmente
             onChanged: (String? value) {
               setState(() {
                 _roomSizeValue = value;
               });
             },
+            value: _roomSizeValue, // Usar el valor del estado
           ),
           SizedBox(height: 40),
           // Botón para crear la sala
-          ElevatedButton(onPressed: createRoom, 
-          style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.blue), //usa el color azul de fondo para todos los estados
+          ElevatedButton(
+            onPressed: createRoom,
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                    Colors.blue), //usa el color azul de fondo para todos los estados
                 foregroundColor: MaterialStateProperty.all(Colors.white), //color del texto
-                minimumSize: MaterialStateProperty.all(Size(MediaQuery.of(context).size.width/2.5, 50))
-              ),
-          child: const Text("Create!", style: TextStyle(color:Colors.white, fontSize: 16),),
+                minimumSize: MaterialStateProperty.all(
+                    Size(MediaQuery.of(context).size.width / 2.5, 50))),
+            child:
+                const Text("Create!", style: TextStyle(color: Colors.white, fontSize: 16)),
           ),
-
         ],
       ),
-
     );
   }
 }
